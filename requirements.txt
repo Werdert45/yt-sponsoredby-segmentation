@@ -1,4 +1,5 @@
-mysql-connector-python
+tqdm
+numpy
 pandas
 youtube_transcript_api
 pymongo
