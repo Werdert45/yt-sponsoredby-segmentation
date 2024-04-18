@@ -149,7 +149,7 @@ def addTag(elem, s, e):
     text = ""
     
     for sent in elem['transcript']:
-        text += sent['text']
+        text += sent['text'] + " "
         
     elem['text'] = text
     return elem
