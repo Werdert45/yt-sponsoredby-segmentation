@@ -67,6 +67,7 @@ def word_count_graph(df, restrict_length=False, max_length=None, name='word_coun
     '''
     if restrict_length:
         df['word_count'] = df['text'].apply(lambda x: len(x.split()))
+        df = df[df['word_count']>0]
         print('Excluded', len(df[df['word_count'] > max_length]), 'videos with more than', max_length, 'words.')
         df = df[df['word_count'] <= max_length]
 
