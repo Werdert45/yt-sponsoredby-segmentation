@@ -37,13 +37,50 @@
       <li>We use a State-of-the-art Transformer model to predict the sponsor timestamps</li>
       <li>We give you these time stamps back so you can skip them</li>
     </ol>
-<form action="/" method="post">
-  <div class="mb-3">
-    <label for="exampleInputEmail1" class="form-label"></label>
-    <input type="text" class="form-control" id="video_url" name="video_url" placeholder="Enter a video url like: https://www.youtube.com/watch?v=dQw4w9WgXcQ"  aria-describedby="emailHelp">
+    <form action="/" method="post">
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label"></label>
+        <input type="text" class="form-control" id="video_url" name="video_url" placeholder="Enter a video url like: https://www.youtube.com/watch?v=dQw4w9WgXcQ"  aria-describedby="emailHelp">
+      </div>
+      <button type="submit" class="btn btn-primary">Get Ad Times</button>
+    </form>
+    <br><br>
+
+    <h3>Results</h3>
+    <br>
+  <table class="table">
+ <!-- <thead>
+    <tr>
+      <th scope="col"></th>
+      <th scope="col">Found Value</th>
+    </tr>
+ </thead> -->
+  <tbody>
+    <tr>
+      <th scope="row">Video Title</th>
+      <td>Never Gonna Give You Up</td>
+    </tr>
+    <tr>
+      <th scope="row">Channel Name</th>
+      <td>Rick Ashley</td>
+    </tr>
+    <tr>
+      <th scope="row">Video Url</th>
+      <td colspan="2">
+        <a href={{display.video_url}}>{{display.video_url}}</a>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">Timestamps</th>
+      <td colspan="2">
+        {% for timestamp in display.timestamps %}
+        <span class="badge text-bg-blue" style="background-color: #54B4D3; margin-right: 10px;">{{timestamp[0]}}-{{timestamp[1]}}</span>
+        {% endfor %}
+      </td>
+    </tr>
+
+  </tbody>
+</table>
   </div>
-  <button type="submit" class="btn btn-primary">Get Ad Times</button>
-</form>
-</div>
 </div>
 {% endblock %}
