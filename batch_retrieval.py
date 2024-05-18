@@ -1,18 +1,6 @@
 from pymongo import MongoClient
 
 
-def retrieve_batch(cursor, batch_size=100):
-    obj = []
-    for elem in cursor:
-        obj.append(elem)
-    if len(obj) == 0:
-        print("No more values to retrieve")
-        return False
-    if len(obj) < 100:
-        print("End of the epoch")
-    return obj
-
-
 class DataGenerator:
     def __init__(
         self,
