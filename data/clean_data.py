@@ -1,9 +1,7 @@
-from mysql.connector import connect
 import datetime
 import time
 from tqdm import tqdm
 from pymongo import MongoClient
-import pandas as pd
 
 """
 Functions included:
@@ -14,7 +12,10 @@ Functions included:
 
 """
 
-client = MongoClient()
+conn_str = "mongodb://49.13.173.177:27020/"
+
+client = MongoClient(conn_str)
+
 
 def rawToData():
     unique_ids = client.sponsoredbye.raw.distinct("videoID")
@@ -34,13 +35,13 @@ def rawToData():
 
             # Update the new record
             assert data_query['start_times'] == len(data_query['end_times'])
-            client.sponsoredbye.data.update_one({'_id': data_query['_id']}, 
-                    {"$set": {'end_times': data_query['end_times']}, 'start_times': data_query['start_times']})
+            client.sponsoredbye.data.update_one({'_id': data_query['_id']},
+                                                {"$set": {'end_times': data_query['end_times']},
+                                                 'start_times': data_query['start_times']})
 
             updated += 1
         else:
             data = sub[0]
-
             start_times = [x['startTime'] for x in sub]
             end_times = [x['endTime'] for x in sub]
             video_id = sub[0]['videoID']
@@ -51,6 +52,7 @@ def rawToData():
             added += 1
     print(f"Updated {updated} and added {added} from raw to data")
     return True
+
 
 def removeDuplicates():
     unique_ids = client.sponsoredbye.data.distinct("videoID")
@@ -66,14 +68,13 @@ def removeDuplicates():
         else:
             client.sponsoredbye.data.delete_one({"_id": elem['_id']})
 
-    print(cur_len) 
+    print(cur_len)
     print("=>")
     print(len(client.sponsoredbye.data.find({}).distinct("_id")))
     return True
 
 
 def cleanDuplicateTimes(data, threshold=30):
-
     duplicates = 0
     new_start = []
     start = data['start_times']
@@ -123,12 +124,15 @@ def removeShortTimes(data, threshold=10):
     return new_start, new_stop
 
 
-
 def addTag(elem, s, e):
+    """
+    Set the tags for checking where the splits are
+    """
+
     in_sponsor = False
     for i, sent in enumerate(elem['transcript']):
         if len(elem['transcript']) - 1 > i:
-            next_sent = elem['transcript'][i+1]
+            next_sent = elem['transcript'][i + 1]
         else:
             if in_sponsor:
                 # Still add the close tag
@@ -145,12 +149,12 @@ def addTag(elem, s, e):
                 # Add the <s> sign
                 elem['transcript'][i]['text'] = '<s>' + elem['transcript'][i]['text']
                 # print(i)
-    
+
     text = ""
-    
+
     for sent in elem['transcript']:
-        text += sent['text'] + " "
-        
+        text += sent['text']
+
     elem['text'] = text
     return elem
 
@@ -158,7 +162,7 @@ def addTag(elem, s, e):
 def clean():
     # Add the raw data (on _id to distinguish)
     start = time.time()
-    print(f"Started cleaning pipeline at {datetime.datetime.fromtimestamp(start).strftime('%c')}")    
+    print(f"Started cleaning pipeline at {datetime.datetime.fromtimestamp(start).strftime('%c')}")
     print("Adding raw collection data to data collection (or updating existing)")
     rawToData()
 
@@ -178,15 +182,15 @@ def clean():
             continue
         elem['start_times'], elem['end_times'] = new_start, new_stop
         new_start, new_stop = removeShortTimes(elem)
-        
+
         if len(old_start) == len(new_start) and len(old_stop) == len(new_stop):
             continue
         else:
-            removed_dup +=1
-            client.sponsoredbye.data.update_one({"_id": elem['_id']}, 
-                    {"$set": {'start_times': new_start, 'end_times': new_stop}})
-    print(f"Muted {removed_dup} entries to remove duplicate <s> down the line, with {error} errors due to inconsistencies")
-
+            removed_dup += 1
+            client.sponsoredbye.data.update_one({"_id": elem['_id']},
+                                                {"$set": {'start_times': new_start, 'end_times': new_stop}})
+    print(
+        f"Muted {removed_dup} entries to remove duplicate <s> down the line, with {error} errors due to inconsistencies")
 
     print("Adding tags to clean collection")
     if input("Are you sure you want to remove the clean collection and update it (Y/n)?") == "Y":
@@ -201,7 +205,7 @@ def clean():
         s = elem['start_times']
         e = elem['end_times']
 
-        for s,e in list(zip(s,e)):
+        for s, e in list(zip(s, e)):
             try:
                 elem = addTag(elem, s, e)
             except:
@@ -210,12 +214,12 @@ def clean():
             elem['text'] = ""
         if 'error' not in elem:
             elem['error'] = 0
-        new = {"videoID": elem['videoID'], 'transcript': elem['transcript'], "text": elem['text'], 'start_times': elem['start_times'], 'end_times': elem['end_times'], 'title': elem['title'], 'error': elem['error']}
+        new = {"videoID": elem['videoID'], 'transcript': elem['transcript'], "text": elem['text'],
+               'start_times': elem['start_times'], 'end_times': elem['end_times'], 'title': elem['title'],
+               'error': elem['error']}
         client.sponsoredbye.clean.insert_one(new)
-    print(f"Succesfully added {total} entries into the clean dataset at {datetime.datetime.fromtimestamp(start).strftime('%c')} there were {tag_error} errors with adding the tags")
+    print(
+        f"Succesfully added {total} entries into the clean dataset at {datetime.datetime.fromtimestamp(start).strftime('%c')} there were {tag_error} errors with adding the tags")
     end = time.time()
-    print(f"Whole process took {end-start} seconds.")
+    print(f"Whole process took {end - start} seconds.")
 
-
-if __name__ == "__main__":
-    clean()

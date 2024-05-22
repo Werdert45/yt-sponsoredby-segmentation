@@ -1,36 +1,17 @@
-import mysql.connector
 from pymongo import MongoClient
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import json
-
-comp_limit = 500
-
-
-client = MongoClient()
-db = mysql.connector.connect(
-        host="localhost",
-        port=3307,
-        user="root",
-        password="password"
-        )
-
-cursor = db.cursor(buffered=True)
+import time
 
 
+conn_str = "mongodb://49.13.173.177:27020/"
 
-def getIds():
-    query = f"SELECT * FROM segmentedbye.video_ids WHERE retrieved=0 AND votes > 5 LIMIT {comp_limit}"
-    cursor.execute(query)
-    return cursor.fetchall()
-
-
-
-def getBasicInformation(vid_id):
+def get_transcript(vid_id):
     try:
         transcript = YouTubeTranscriptApi.get_transcript(vid_id)
     except Exception as e:
-        raise e
+        return False
     req = requests.get(f'https://yt.lemnoslife.com/noKey/videos?part=snippet&id={vid_id}')
     if req.status_code == 200:
         information = json.loads(req.content)
@@ -39,13 +20,13 @@ def getBasicInformation(vid_id):
         information = None
         return False
     information['transcript'] = transcript
-    return information
+    return transcript
 
 
 def retrieveData(obj):
     video_id = obj[0]
     try:
-        information = getBasicInformation(video_id)
+        information = get_transcript(video_id)
     except Exception as e:
         print(e)
         return False
@@ -73,16 +54,14 @@ def retrieveData(obj):
 
     return val_dict
 
-if __name__ == "__main__":
-    while True:
-        ids = getIds()
-        print(ids[0])
-        for elem in ids:
-            data = retrieveData(elem)
-            # Update the retrieved key in the sql
-            cursor.execute(f"UPDATE segmentedbye.video_ids SET retrieved=1 WHERE videoID='{elem[0]}'")
-            db.commit()
-            # Add the entry to the MongoDB
-            print(elem)
-            if data:
-                client.sponsoredbye.raw.insert_one(data)
+
+def scrape():
+    client = MongoClient(conn_str)
+    cursor = client.sponsoredbye.video_id.find({'retrieved': 0})
+    for video_id in cursor:
+        data = retrieveData(video_id['videoID'])
+        if data:
+            client.sponsoredbye.raw.insert_one(data)
+        client.sponsoredbye.video_id.update_one({"_id": video_id['_id']}, {"$set": {'retrieved': 1}})
+        time.sleep(3)
+
