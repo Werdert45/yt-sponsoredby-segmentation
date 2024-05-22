@@ -3,3 +3,8 @@ numpy
 pandas
 youtube_transcript_api
 pymongo
+deepmultilingualpunctuation
+sentence-transformers
+tensorflow==2.16.1
+keras==3.3.3
+keras-nlp==0.11.1
