@@ -2,15 +2,20 @@
 
 
 ## Introduction
-This project aims to segment the sponsored by segments in youtube videos, to give the user only the contents of the video that he/she wants.
+This project aims to segment the sponsored by segments in youtube videos, to give the user only the contents of the video that he/she wants. A full description of the project can be found in the directory paper.
 
 
 ## Data Collection
-Data is collected using the YoutubeLemmo 'Fake' YouTube API to collect data. This data is then processed by the datapipeline to be cleaned and processed. Data is collected and then annotated with <s> tags to indicate where the add is.
+Data is collected using the YoutubeLemmo 'Fake' YouTube API to collect data. This data is then processed by the datapipeline to be cleaned and processed. Data is collected and then annotated with \<s\> tags to indicate where the add is.
 
 
 ## Model
+The model uses a T5-embedding, Bidirectional LSTM structure that outputs probabilities for the different sentences.
 
 
+## Evaluation
+Evaluation is done with f1 scores, WindowDiff and Pk score. 
 
-> NOTE: I think it is important to connect all of the text together into one document. This makes it so that there is no distinction between starting/ending of video, as there is no data without ads. The sentences consequently are the input. An alternative is using paragraphs.
+
+## Data 
+To get access to the Mongo containing the data, please contact ian.ronk0@gmail.com.
