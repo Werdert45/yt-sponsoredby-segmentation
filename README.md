@@ -18,4 +18,4 @@ Evaluation is done with f1 scores, WindowDiff and Pk score.
 
 
 ## Data 
-To get access to the Mongo containing the data, please contact ian.ronk0@gmail.com.
+To get access to the Mongo containing the data, please contact ian.ronk0@gmail.com. A sample can be found in `data/data_sample.json`
